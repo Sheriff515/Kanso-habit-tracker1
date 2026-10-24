@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kanso – Habit Tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0f1113">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f4f0;--card:#fff;--line:#dcdfd6;--tx:#1c1f1d;--mut:#6d726c;--gold:#a8780f;--goldbg:#f3e6c0;--jade:#1f9a74;--jbg:#d7efe6;--ink:#fff;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1113;--card:#181b1e;--line:#2a2e32;--tx:#ece8dd;--mut:#8d9096;--gold:#f0cd78;--goldbg:#3a3220;--jade:#3ecf9b;--jbg:#173a30;--ink:#14110a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1113;--card:#181b1e;--line:#2a2e32;--tx:#ece8dd;--mut:#8d9096;--gold:#f0cd78;--goldbg:#3a3220;--jade:#3ecf9b;--jbg:#173a30;--ink:#14110a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Inter,system-ui,sans-serif;min-height:100vh}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;margin:0}
+h1{font-size:34px}h2{font-size:26px}h3{font-size:21px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+nav{position:sticky;top:0;height:100vh;padding:24px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.logo{font-family:"Cormorant Garamond",serif;font-size:28px;letter-spacing:.12em;color:var(--gold);padding:0 10px 18px}
+nav button.t{display:flex;gap:10px;align-items:center;background:none;border:0;padding:11px 12px;border-radius:12px;color:var(--mut);text-align:left}
+nav button.t.on{background:var(--goldbg);color:var(--gold);font-weight:600}
+nav .sp{flex:1}
+main{padding:28px;max-width:900px;width:100%;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}
+.row{display:flex;gap:12px;align-items:center}.sb{justify-content:space-between}.wrap{flex-wrap:wrap}
+.mut{color:var(--mut)}.sm{font-size:13px}
+.gold{color:var(--gold)}
+.hero{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.big{font-family:"Cormorant Garamond",serif;font-size:48px;line-height:1}
+.ring{--p:0;width:104px;height:104px;border-radius:50%;background:conic-gradient(var(--gold) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring i{width:84px;height:84px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-style:normal;font-family:"Cormorant Garamond",serif;font-size:26px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:16px}
+.dy{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 0;text-align:center;font-size:12px;color:var(--mut)}
+.dy b{display:block;font-size:17px;color:var(--tx);font-weight:600}
+.dy.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.hb{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.ic{width:44px;height:44px;border-radius:12px;background:var(--goldbg);display:grid;place-items:center;font-size:22px;flex:none}
+.hb .n{flex:1;min-width:0}.hb .n b{font-family:"Cormorant Garamond",serif;font-size:21px;font-weight:600;display:block}
+.chk{width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);background:none;color:var(--ink);font-size:20px;flex:none}
+.chk.on{background:var(--gold)}
+.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}
+.bar>div{height:100%;background:linear-gradient(90deg,var(--gold),var(--jade));border-radius:6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:16px;background:var(--card)}
+.seg button{border:0;background:none;padding:8px 16px;border-radius:9px;color:var(--mut)}
+.seg button.on{background:var(--goldbg);color:var(--gold);font-weight:600}
+.bars{display:flex;gap:10px;align-items:flex-end;height:160px;padding-top:12px}
+.bars div.c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:12px;color:var(--mut);gap:6px}
+.bars span{width:100%;border-radius:8px 8px 3px 3px;background:var(--jade);min-height:4px}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.cell{aspect-ratio:1;border-radius:8px;background:var(--line);display:grid;place-items:center;font-size:11px;color:var(--mut)}
+.cell.p{background:var(--goldbg);color:var(--gold)}.cell.f{background:var(--jade);color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.stats .card{margin:0;padding:14px}
+.stats .big{font-size:36px}
+.btn{background:var(--gold);color:var(--ink);border:0;border-radius:12px;padding:11px 18px;font-weight:600}
+.btn.g{background:none;color:var(--tx);border:1px solid var(--line)}
+.btn.d{background:none;color:#d4574e;border:1px solid var(--line)}
+label{display:block;font-size:13px;color:var(--mut);margin:14px 0 6px}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=time]{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+textarea{width:100%;min-height:96px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);resize:vertical;font-family:"Cormorant Garamond",Georgia,serif;font-size:19px;line-height:1.4}
+.ms{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.ms .card{margin:0;text-align:center;padding:14px 8px}.ms .card.lk{opacity:.55}
+.chip{border:1px solid var(--line);background:none;border-radius:999px;padding:7px 14px;font-size:13px;color:var(--mut)}
+.chip.on{background:var(--goldbg);color:var(--gold);border-color:var(--gold)}
+.chip.e{font-size:20px;padding:5px 11px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding-top:env(safe-area-inset-top,0px)}
+.md{background:var(--card);border:1px solid var(--line);border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px))}
+.auth{max-width:400px;margin:0 auto;padding:12vh 20px}
+.auth .logo{padding:0 0 6px;font-size:40px}
+.err{color:#d4574e;font-size:13px;margin-top:10px}
+.tg{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--line);gap:12px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30}
+select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.sheet{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card);margin-bottom:16px}
+.sheet table{border-collapse:separate;border-spacing:0;font-size:12px}
+.sheet th,.sheet td{padding:3px;text-align:center;min-width:28px;border-bottom:1px solid var(--line)}
+.sheet .sk{position:sticky;left:0;background:var(--card);text-align:left;min-width:140px;max-width:140px;padding:6px 10px;z-index:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--line)}
+.sheet .wk{background:var(--goldbg);color:var(--gold);font-weight:600}
+.cb{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--mut);background:none;padding:0;color:var(--ink);font-size:12px;line-height:1}
+.cb.on{background:var(--jade);border-color:var(--jade)}.cb:disabled{opacity:.25;cursor:default}
+.sheet select,.sheet input[type=number]{width:38px;padding:2px;border-radius:6px;border:1px solid var(--line);background:var(--bg);font-size:12px;text-align:center}
+.dbars{display:flex;gap:2px;align-items:flex-end;height:110px}.dbars span{flex:1;background:var(--gold);border-radius:3px 3px 0 0;min-height:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two .card{margin-bottom:0}
+.at{width:100%;border-collapse:collapse;font-size:13px}.at td,.at th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right}.at td:first-child,.at th:first-child{text-align:left}
+@media (max-width:859px){.two{grid-template-columns:1fr}nav button.t{padding:6px 3px;font-size:10px}}
+.sheet .pc{position:sticky;right:0;background:var(--card);border-left:1px solid var(--line);min-width:54px;font-weight:600;color:var(--gold);z-index:1}
+.ln{stroke-dasharray:1;animation:draw .9s ease-out}@keyframes draw{from{stroke-dashoffset:1}}@media (prefers-reduced-motion:reduce){.ln{animation:none}}
+.cb.lg{width:28px;height:28px;font-size:15px;border-radius:7px}
+@media (max-width:859px){.sheet.wk7 .sk{min-width:92px;max-width:92px;padding:6px}.sheet.wk7 th,.sheet.wk7 td{min-width:31px;padding:3px 1px}.sheet.wk7 .pc{min-width:42px}.cb.lg{width:26px;height:26px}}
+@property --p{syntax:'<number>';inherits:false;initial-value:0}
+.lp{max-width:1080px;margin:0 auto;padding:20px 22px 60px}
+.lh{display:flex;justify-content:space-between;align-items:center;padding:6px 0 40px}
+.lhero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:20px 0 60px}
+.lh1{font-size:clamp(44px,7vw,84px);line-height:.98;margin:12px 0 18px}
+.lp1{font-size:18px;max-width:46ch;margin:0 0 26px}
+.lcard{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:26px;box-shadow:0 30px 80px -30px color-mix(in srgb,var(--gold) 45%,transparent)}
+.lcard .ring{width:150px;height:150px;margin:0 auto 20px;animation:fill 1.6s .2s cubic-bezier(.2,.8,.2,1) both}
+.lcard .ring i{width:124px;height:124px;font-size:40px}
+@keyframes fill{from{--p:0}to{--p:78}}
+.lf{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.lf .card{margin:0}
+@media (max-width:859px){.lhero{grid-template-columns:1fr;gap:32px}.lf{grid-template-columns:1fr}.lp .logo{font-size:24px}}
+@media (prefers-reduced-motion:reduce){.lcard .ring{animation:none;--p:78}}
+@media (max-width:859px){
+ .app{display:block;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+ nav{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;justify-content:space-around;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line);border-right:0;z-index:10;gap:0}
+ nav .logo,nav .sp,nav .who{display:none}
+ nav button.t{flex-direction:column;gap:2px;font-size:11px;padding:6px 10px;text-align:center}
+ main{padding:18px 16px}
+ h1{font-size:28px}.big{font-size:40px}
+ .grid{grid-template-columns:repeat(6,1fr)}
+ .ov{align-items:flex-end}
+}
+@media (min-width:860px){.ov{align-items:center}.md{border-radius:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const $=s=>document.querySelector(s),mem={};
+const ld=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return mem[k]||null}};
+const sv=(k,v)=>{mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ICONS=['🧘', '💧', '✍️', '🏃', '📖', '🥗', '😴', '🧊', '🎯', '🌿', '⏰', '💪', '📚', '🗓️', '💰', '🧠', '🚿', '🍎', '🥤', '🚶', '🚴', '🏊', '🧗', '⚽', '🏀', '🎾', '🥊', '🤸', '🏋️', '🎸', '🎹', '🎨', '📝', '💻', '📵', '🚭', '🍷', '🦷', '🧴', '🧹', '🛏️', '🌅', '🌙', '☀️', '🌳', '🐕', '🐈', '🙏', '❤️', '🤝', '📞', '✉️', '🎧', '📷', '🌍', '🧩', '♟️', '🍳', '🥕', '🥑', '🍵', '☕', '💊', '🩺', '🪥', '🛁', '🔥', '⭐', '🏆'];
+const CFG=window.KANSO||{},CLOUD=!!(CFG.url&&CFG.key),REC=/type=recovery/.test(location.hash);let SB=null;try{if(CLOUD&&window.supabase)SB=window.supabase.createClient(CFG.url,CFG.key)}catch(e){}
+let S={view:'landing',user:null,data:null,tab:'today',range:'week',date:new Date(),modal:null,mode:'in',err:'',theme:ld('kanso:theme')||'auto'};
+function applyTheme(){const r=document.documentElement;S.theme==='auto'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',S.theme)}
+async function hash(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return btoa(s)}}
+let pt=null;
+function setSync(t){S.sync=t;const e=$('#sy');if(e)e.textContent='Cloud sync: '+t}
+function save(){S.data._t=Date.now();sv('kanso:data:'+S.user.email,S.data);if(SB&&S.user.id){clearTimeout(pt);pt=setTimeout(push,700)}}
+async function push(){try{const{error}=await SB.from('user_data').upsert({user_id:S.user.id,data:S.data,updated_at:new Date().toISOString()});setSync(error?'will retry when online':'synced')}catch(x){setSync('will retry when online')}}
+async function pull(){const{data,error}=await SB.from('user_data').select('data').eq('user_id',S.user.id).maybeSingle();if(error)throw error;
+ const loc=ld('kanso:data:'+S.user.email),cl=data&&data.data&&data.data.habits?data.data:null;
+ if(cl&&(!loc||(cl._t||0)>=(loc._t||0)))S.data=cl;else if(loc){S.data=loc;await push()}else S.data={habits:[],logs:{}};
+ sv('kanso:data:'+S.user.email,S.data);setSync('synced')}
+async function enter(u){S.user={email:u.email,id:u.id,name:(u.user_metadata||{}).name||u.email.split('@')[0]};
+ try{await pull()}catch(x){S.data=ld('kanso:data:'+u.email)||{habits:[],logs:{}};setSync('offline, showing saved copy')}
+ S.err='';S.note='';S.tab='today';render()}
+async function cloudAuth(e,p,nm){try{
+  if(S.mode==='up'){if(!nm)return fail('Enter your name.');
+   const{data,error}=await SB.auth.signUp({email:e,password:p,options:{data:{name:nm},emailRedirectTo:location.origin+location.pathname}});
+   if(error)return fail(error.message);
+   if(!data.session){S.err='';S.note='Check your email to confirm your account, then sign in.';S.mode='in';return render()}
+   return enter(data.session.user)}
+  const{data,error}=await SB.auth.signInWithPassword({email:e,password:p});
+  if(error)return fail(error.message);
+  await enter(data.user)}catch(x){fail('Could not reach the server. Check your connection.')}}
+async function forgot(e){if(!/\S+@\S+\.\S+/.test(e))return fail('Enter your account email.');
+ if(!SB)return fail('Password reset by email needs cloud sync, which is not switched on in this version. Export a backup in Settings, or create a new account.');
+ try{const{error}=await SB.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});if(error)return fail(error.message);S.err='';S.note='If that email has an account, a reset link is on its way. Open it on this device.';S.mode='in';render()}catch(x){fail('Could not reach the server.')}}
+async function newpw(p){if(p.length<6)return fail('Use a password of at least 6 characters.');
+ try{const{data,error}=await SB.auth.updateUser({password:p});if(error)return fail(error.message);try{history.replaceState(null,'',location.pathname)}catch(x){}await enter(data.user);toast('Password updated.')}catch(x){fail('Could not reach the server.')}}
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+async function auth(){const g=id=>{const x=$(id);return x?x.value:''};
+ S.f={nm:g('#nm'),em:g('#em')};const e=g('#em').trim().toLowerCase(),p=g('#pw'),users=ld('kanso:users')||[];
+ if(S.mode==='forgot')return forgot(e);
+ if(S.mode==='newpw')return newpw(p);
+ if(!/\S+@\S+\.\S+/.test(e))return fail('Enter a valid email address.');
+ if(p.length<6)return fail('Use a password of at least 6 characters.');
+ if(CLOUD&&!SB)return fail('Cloud sync could not load. Check your connection and reload.');
+ if(SB)return cloudAuth(e,p,S.f.nm.trim());
+ if(S.mode==='up'){
+  const nm=S.f.nm.trim();if(!nm)return fail('Enter your name.');
+  if(users.find(u=>u.email===e))return fail('That email already has an account. Sign in instead.');
+  const salt=Math.random().toString(36).slice(2);users.push({email:e,name:nm,salt,hash:await hash(salt+p)});sv('kanso:users',users);
+  S.user={email:e,name:nm};S.data={habits:[],logs:{}};save();
+ }else{
+  const u=users.find(u=>u.email===e);
+  if(!u||u.hash!==await hash(u.salt+p))return fail('Email or password is incorrect.');
+  S.user={email:e,name:u.name};S.data=ld('kanso:data:'+e)||{habits:[],logs:{}};
+ }
+ sv('kanso:session',S.user.email);S.err='';S.tab='today';
+ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(x){}
+ render();
+}
+function fail(m){S.err=m;render()}
+function signout(){if(SB)try{SB.auth.signOut()}catch(x){}localStorage.removeItem('kanso:session');S.user=null;S.data=null;S.err='';S.view='landing';render()}
+function sched(h,d){return h.days.includes(d.getDay())&&key(d)>=h.created}
+function dn(h,k){return !!(S.data.logs[h.id]&&S.data.logs[h.id][k])}
+function bf(id,k){const h=S.data.habits.find(x=>x.id===id);if(h&&k<h.created)h.created=k}
+function fz(h,k){return !!(S.data.fz&&S.data.fz[h.id]&&S.data.fz[h.id][k])}
+function fzAvail(){const t=S.data.habits.reduce((a,h)=>a+Object.keys(S.data.logs[h.id]||{}).length,0);let u=0;for(const i in(S.data.fz||{}))u+=Object.keys(S.data.fz[i]).length;return Math.max(0,2+Math.min(3,Math.floor(t/30))-u)}
+function useFreeze(id){const k=key(S.date);if(fzAvail()<1)return toast('No freezes left.');S.data.fz=S.data.fz||{};(S.data.fz[id]=S.data.fz[id]||{})[k]=1;save();toast('Freeze used. Streak protected.');render()}
+function streak(h){let d=new Date(),n=0;if(sched(h,d)&&!dn(h,key(d)))d=addD(d,-1);
+ for(let i=0;i<3650&&key(d)>=h.created;i++){if(sched(h,d)){if(dn(h,key(d)))n++;else if(!fz(h,key(d)))break}d=addD(d,-1)}return n}
+function best(h){let b=0,r=0,d=new Date(h.created+'T00:00'),end=new Date();
+ while(d<=end){if(sched(h,d)){if(dn(h,key(d))){r++;b=Math.max(b,r)}else if(key(d)!==key(end)&&!fz(h,key(d)))r=0}d=addD(d,1)}return b}
+function rate(hs,n){let s=0,c=0;for(const h of hs)for(let i=0;i<n;i++){const d=addD(new Date(),-i);if(sched(h,d)){s++;if(dn(h,key(d)))c++}}return s?Math.round(c/s*100):0}
+function toggle(id){const h=S.data.habits.find(x=>x.id===id),k=key(S.date);
+ const l=S.data.logs[id]=S.data.logs[id]||{};if(l[k])delete l[k];else{l[k]=1;bf(id,k)}save();
+ if(l[k]&&streak(h)===h.target)toast('Goal reached: '+h.target+' days of '+h.name+'!');render()}
+function nav(t){S.tab=t;render()}
+function openHabit(m,h){S.modal=m;S.edit=h?JSON.parse(JSON.stringify(h)):{id:'h'+Date.now(),name:'',icon:'🧘',target:30,days:[0,1,2,3,4,5,6],time:'',type:'check',minutes:25,created:key(new Date())};render()}
+function closeModal(){S.modal=null;render()}
+function setE(k,v){S.edit[k]=v;render()}
+function tgDay(i){const a=S.edit.days;S.edit.days=a.includes(i)?a.filter(x=>x!==i):[...a,i];render()}
+function saveHabit(){const e=S.edit;e.name=$('#hn').value.trim();const ci=($('#hi')||{}).value;if(ci&&ci.trim())e.icon=ci.trim();e.target=Math.max(1,parseInt($('#ht').value)||30);e.time=$('#hr').value;e.minutes=Math.max(1,parseInt(($('#hm')||{}).value)||e.minutes||25);
+ if(!e.name){S.edit.err='Give your habit a name.';return render()}
+ if(!e.days.length){S.edit.err='Pick at least one day.';return render()}
+ const i=S.data.habits.findIndex(x=>x.id===e.id);delete e.err;i>=0?S.data.habits[i]=e:S.data.habits.push(e);save();S.modal=null;render()}
+function delHabit(){if(!confirm('Delete this habit and its history?'))return;const id=S.edit.id;S.data.habits=S.data.habits.filter(h=>h.id!==id);delete S.data.logs[id];save();S.modal=null;render()}
+function exportData(){const b=new Blob([JSON.stringify({user:S.user.email,data:S.data},null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='kanso-backup.json';a.click()}
+function importData(f){const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(!j.data||!j.data.habits)throw 0;S.data=j.data;save();toast('Backup restored.');render()}catch(e){toast('That file isn’t a Kanso backup.')}};r.readAsText(f)}
+async function askNotify(){if(!('Notification' in window))return toast('This browser doesn’t support notifications.');const p=await Notification.requestPermission();toast(p==='granted'?'Reminders allowed.':'Reminders blocked in browser settings.');render()}
+async function askStorage(){try{const ok=await navigator.storage.persist();toast(ok?'Storage is protected from auto-clearing.':'The browser kept storage as best-effort.')}catch(e){toast('Persistent storage isn’t available here.')}render()}
+function setTheme(t){S.theme=t;sv('kanso:theme',t);applyTheme();render()}
+setInterval(()=>{if(!S.data||!('Notification' in window)||Notification.permission!=='granted')return;
+ const n=new Date(),hm=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+ for(const h of S.data.habits)if(h.time===hm&&sched(h,n)&&!dn(h,key(n))&&S.last!==h.id+hm){S.last=h.id+hm;try{new Notification('Kanso',{body:h.icon+' Time for '+h.name})}catch(e){}}},20000);
+
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'],MO=['😞','😕','😐','🙂','😄'];
+function rs(){const e=$('#sh'),l=e?e.scrollLeft:0;render();const n=$('#sh');if(n)n.scrollLeft=l}
+function mTog(id,k){const l=S.data.logs[id]=S.data.logs[id]||{};if(l[k])delete l[k];else{l[k]=1;bf(id,k)}save();rs()}
+function setM(k,f,v){S.data[f]=S.data[f]||{};if(v==='')delete S.data[f][k];else S.data[f][k]=+v;save();rs()}
+function mStat(H,y,m){const n=new Date(y,m+1,0).getDate(),per=[];let G=0,C=0;for(let d=1;d<=n;d++){const dt=new Date(y,m,d,12);let s=0,c=0;H.forEach(h=>{if(sched(h,dt)){s++;if(dn(h,key(dt)))c++}});per.push({s,c});G+=s;C+=c}return{n,per,G,C}}
+function vYear(H){const y=new Date().getFullYear(),ms=MN.map((_,m)=>{const s=mStat(H,y,m),e=key(new Date(y,m+1,0));return{m,s,hc:H.filter(h=>h.created<=e).length,p:s.G?Math.round(s.C/s.G*100):0}}),pts=ms.map((o,i)=>(5+i*30)+','+(95-o.p*.9)).join(' ');
+ return `<div class="card"><h3>Yearly statistics ${y}</h3><svg viewBox="0 0 340 112" style="width:100%" role="img" aria-label="Monthly progress for ${y}"><polygon points="5,95 ${pts} 335,95" fill="var(--jbg)"/><polyline points="${pts}" fill="none" stroke="var(--jade)" stroke-width="2"/>${ms.map((o,i)=>`<text x="${5+i*30}" y="108" font-size="8" fill="var(--mut)" text-anchor="middle">${MN[i].slice(0,3)}</text>`).join('')}</svg></div>
+<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">${ms.map(o=>`<div class="card"><b>${MN[o.m]}</b><div class="mut sm">Habits ${o.hc}</div><div class="mut sm">Completed ${o.s.C}</div><div class="gold" style="font-size:22px">${o.p}%</div></div>`).join('')}</div>`}
+function vMonth(){const H=S.data.habits,now=new Date(),y=S.my??now.getFullYear(),m=S.mm??now.getMonth();
+ const head=`<div class="row sb wrap" style="margin-bottom:16px"><h1>Month sheet</h1><div class="row"><select aria-label="Year" onchange="S.my=+this.value;rs()">${[y-1,y,y+1].map(v=>`<option ${v===y?'selected':''}>${v}</option>`).join('')}</select><select aria-label="Month" onchange="S.mm=+this.value;rs()">${MN.map((t,i)=>`<option value="${i}" ${i===m?'selected':''}>${t}</option>`).join('')}</select></div></div>`;
+ if(!H.length)return head+`<p class="mut">Add a habit to start your monthly sheet.</p><button class="btn" onclick="openHabit('habit')">Add a habit</button>`;
+ const st=mStat(H,y,m),n=st.n,tk=key(now),days=[...Array(n)].map((_,i)=>new Date(y,m,i+1,12)),wn=Math.ceil(n/7),pct=st.G?Math.round(st.C/st.G*100):0;
+ const h1=[...Array(wn)].map((_,w)=>`<th class="wk" colspan="${Math.min(7,n-w*7)}">Week ${w+1}</th>`).join(''),h2=days.map(d=>`<th>${'SMTWTFS'[d.getDay()]}</th>`).join(''),h3=days.map(d=>`<th style="color:${key(d)===tk?'var(--gold)':'var(--mut)'}">${d.getDate()}</th>`).join('');
+ const rows=H.map(h=>`<tr><td class="sk">${h.icon} ${esc(h.name)}</td>${days.map(d=>{const k=key(d),on=dn(h,k);return `<td><button class="cb ${on?'on':''}" ${h.days.includes(d.getDay())&&k<=tk?'':'disabled'} aria-label="${esc(h.name)} ${k}" aria-pressed="${on}" onclick="mTog('${h.id}','${k}')">${on?'✓':''}</button></td>`}).join('')}</tr>`).join('');
+ const sum=(l,f)=>`<tr><td class="sk mut">${l}</td>${st.per.map(f).map(v=>`<td class="mut">${v}</td>`).join('')}</tr>`,mo=S.data.mood||{},sp=S.data.sleep||{};
+ const mood=`<tr><td class="sk">Mood</td>${days.map(d=>{const k=key(d),v=mo[k];return `<td><select aria-label="Mood ${k}" onchange="setM('${k}','mood',this.value)"><option value="">·</option>${MO.map((e,i)=>`<option value="${i+1}" ${v===i+1?'selected':''}>${e}</option>`).join('')}</select></td>`}).join('')}</tr>`;
+ const slp=`<tr><td class="sk">Hours of sleep</td>${days.map(d=>{const k=key(d);return `<td><input type="number" step="0.5" min="0" max="24" value="${sp[k]??''}" aria-label="Sleep ${k}" onchange="setM('${k}','sleep',this.value)"></td>`}).join('')}</tr>`;
+ const an=H.map(h=>{let g=0,a=0;days.forEach(d=>{if(sched(h,d)){g++;if(dn(h,key(d)))a++}});return{h,g,a,p:g?Math.round(a/g*100):0}});
+ const wp=[...Array(wn)].map((_,w)=>{let a=0,b=0;st.per.slice(w*7,w*7+7).forEach(q=>{a+=q.s;b+=q.c});return a?Math.round(b/a*100):0});
+ const xx=i=>5+i*(300/Math.max(1,n-1)),pts=days.map((d,i)=>[i,sp[key(d)]]).filter(a=>a[1]!=null).map(([i,v])=>xx(i)+','+(95-Math.min(12,v)/12*90)).join(' '),dots=days.map((d,i)=>[i,mo[key(d)]]).filter(a=>a[1]!=null).map(([i,v])=>`<circle cx="${xx(i)}" cy="${95-v/5*90}" r="3" fill="var(--jade)"/>`).join('');
+ return head+`<div class="sheet" id="sh"><table><thead><tr><th class="sk">My habits</th>${h1}</tr><tr><th class="sk"></th>${h2}</tr><tr><th class="sk"></th>${h3}</tr></thead><tbody>${rows}${sum('Progress',q=>q.s?Math.round(q.c/q.s*100)+'%':'–')}${sum('Done',q=>q.c)}${sum('Not done',q=>q.s-q.c)}${mood}${slp}</tbody></table></div>
+${vLineM(H,y,m)}<div class="two"><div class="card"><h3>Daily progress</h3><div class="dbars" role="img" aria-label="Daily progress">${st.per.map((q,i)=>`<span title="Day ${i+1}" style="height:${q.s?q.c/q.s*100:0}%"></span>`).join('')}</div></div><div class="card"><h3>Weekly progress</h3><div class="bars">${wp.map((v,i)=>`<div class="c">${v}%<span style="height:${v*1.1}px"></span>Wk ${i+1}</div>`).join('')}</div></div></div>
+<div class="two" style="margin-top:16px"><div class="card row sb"><div><h3>Overall stats</h3><div class="mut" style="margin-top:8px">Goal ${st.G}<br>Completed ${st.C}<br>Left ${st.G-st.C}</div></div><div class="ring" style="--p:${pct}"><i>${pct}%</i></div></div><div class="card"><h3>Top habits</h3><ol style="margin:8px 0 0;padding-left:22px">${[...an].sort((a,b)=>b.p-a.p||b.a-a.a).slice(0,10).map(o=>`<li>${o.h.icon} ${esc(o.h.name)} <b class="gold">${o.p}%</b></li>`).join('')}</ol></div></div>
+<div class="card" style="margin-top:16px"><h3>Analysis</h3><table class="at"><tr class="mut"><th>Habit</th><th>Goal</th><th>Actual</th><th>Left</th><th>%</th></tr>${an.map(o=>`<tr><td>${o.h.icon} ${esc(o.h.name)}<div class="bar"><div style="width:${o.p}%"></div></div></td><td>${o.g}</td><td>${o.a}</td><td>${o.g-o.a}</td><td>${o.p}%</td></tr>`).join('')}</table></div>
+<div class="card"><h3>Overall wellness</h3>${pts||dots?`<svg viewBox="0 0 310 100" style="width:100%" role="img" aria-label="Mood and sleep"><polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="2"/>${dots}</svg><div class="mut sm"><span style="color:var(--jade)">●</span> Mood &nbsp; <span class="gold">—</span> Hours of sleep</div>`:'<p class="mut">Log mood and sleep in the sheet to see your wellness chart.</p>'}</div>`}
+function wkStat(H,mon){const tk=key(new Date()),days=[...Array(7)].map((_,i)=>addD(mon,i)),per=days.map(d=>{const k=key(d);let s=0,c=0;if(k<=tk)H.forEach(h=>{if(h.days.includes(d.getDay())&&(k>=h.created||dn(h,k))){s++;if(dn(h,k))c++}});return{s,c}});let ts=0,tc=0;per.forEach(q=>{ts+=q.s;tc+=q.c});return{days,per,p:ts?Math.round(tc/ts*100):0}}
+function vLine(it,title,vals,pct,sub){const n=it.length,X=i=>34+i*(296/Math.max(1,n-1)),Y=v=>140-v*1.2,pts=it.map((o,i)=>o.v==null?null:[X(i),Y(o.v),o.v]).filter(Boolean),last=pts[pts.length-1];
+ const cv=a=>{let d='';const lo=Y(100),hi=Y(0),cl=y=>Math.max(lo,Math.min(hi,y)).toFixed(1);for(let i=0;i<a.length-1;i++){const p0=a[i-1]||a[i],p1=a[i],p2=a[i+1],p3=a[i+2]||p2;d+=` C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${cl(p1[1]+(p2[1]-p0[1])/6)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${cl(p2[1]-(p3[1]-p1[1])/6)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`}return d};
+ const grid=[...Array(11)].map((_,i)=>i*10).map(v=>`<line x1="32" x2="332" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="${v%50?.5:1}"/><text x="28" y="${Y(v)+2.5}" font-size="7" fill="var(--mut)" text-anchor="end">${v}%</text>`).join('');
+ const curve=pts.length>1?`<path d="M${pts[0][0]},${Y(0)} L${pts[0][0]},${pts[0][1]}${cv(pts)} L${last[0]},${Y(0)} Z" fill="var(--jbg)"/><path class="ln" pathLength="1" d="M${pts[0][0]},${pts[0][1]}${cv(pts)}" fill="none" stroke="var(--jade)" stroke-width="2.5" stroke-linecap="round"/>`:'';
+ return `<div class="card"><div class="row sb"><h3>${title}</h3><div style="text-align:right"><b class="gold" style="font-size:20px">${pct}%</b>${sub?`<div class="mut sm">${sub}</div>`:''}</div></div>${pts.length?'':'<p class="mut sm">Tick a box to start your line.</p>'}<svg viewBox="0 0 340 168" style="width:100%" role="img" aria-label="${title}">${grid}${curve}${pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.2" fill="var(--gold)"/>`).join('')}${pts.map((p,i)=>vals||p===last?`<text x="${p[0].toFixed(1)}" y="${(p[1]-7).toFixed(1)}" font-size="8" font-weight="600" fill="var(--gold)" text-anchor="middle">${p[2]}%</text>`:'').join('')}${it.map((o,i)=>o.l===''?'':`<text x="${X(i).toFixed(1)}" y="160" font-size="${vals?8:7}" fill="var(--mut)" text-anchor="middle">${o.l}</text>`).join('')}</svg></div>`}
+function vLineM(H,y,m){const st=mStat(H,y,m),tk=key(new Date()),n=st.n;let ts=0,tc=0;const it=st.per.map((q,i)=>{const ok=key(new Date(y,m,i+1,12))<=tk&&q.s;if(ok){ts+=q.s;tc+=q.c}return{l:[1,8,15,22,n].includes(i+1)?i+1:'',v:ok?Math.round(q.c/q.s*100):null}});return vLine(it,'Progress line · '+MN[m],false,ts?Math.round(tc/ts*100):0,'')}
+function vSheet(H){const n=new Date(),off=S.wo||0,mon=addD(n,-((n.getDay()+6)%7)+off*7),w=wkStat(H,mon),prev=wkStat(H,addD(mon,-7)),tk=key(n),days=w.days,rg=d=>MN[d.getMonth()].slice(0,3)+' '+d.getDate();
+ const hc=days.map(d=>`<th class="${key(d)===tk?'td':''}" style="color:${key(d)===tk?'var(--gold)':'var(--mut)'}">${DN[d.getDay()]}<br>${d.getDate()}</th>`).join('');
+ const rows=H.map(h=>{let g=0,a=0;const c=days.map(d=>{const k=key(d),on=dn(h,k),ok=h.days.includes(d.getDay())&&k<=tk;if(ok&&(k>=h.created||on)){g++;if(on)a++}return `<td><button class="cb lg ${on?'on':''}" ${ok?'':'disabled'} aria-label="${esc(h.name)} ${k}" aria-pressed="${on}" onclick="mTog('${h.id}','${k}')">${on?'✓':''}</button></td>`}).join('');return `<tr><td class="sk">${h.icon} ${esc(h.name)}</td>${c}<td class="pc">${g?Math.round(a/g*100):0}%</td></tr>`}).join('');
+ const sum=`<tr><td class="sk mut">Progress</td>${w.per.map(q=>`<td class="mut">${q.s?Math.round(q.c/q.s*100):'–'}</td>`).join('')}<td class="pc">${w.p}%</td></tr>`,df=w.p-prev.p,it=w.per.map((q,i)=>({l:DN[days[i].getDay()]+' '+days[i].getDate(),v:q.s?Math.round(q.c/q.s*100):null}));
+ return `<div class="row sb" style="margin-bottom:8px"><button class="btn g" aria-label="Previous week" onclick="S.wo=(S.wo||0)-1;render()">‹</button><div style="text-align:center"><b>${rg(days[0])} – ${rg(days[6])}</b><div class="mut sm">${off===0?'This week':off===-1?'Last week':-off+' weeks ago'}${off?' · <a href="#" style="color:var(--gold)" onclick="S.wo=0;render();return false">Back to this week</a>':''}</div></div><button class="btn g" aria-label="Next week" ${off>=0?'disabled style="opacity:.4"':''} onclick="S.wo=(S.wo||0)+1;render()">›</button></div>
+<div class="sheet wk7" id="sh"><table><thead><tr><th class="sk">My habits</th>${hc}<th class="pc">%</th></tr></thead><tbody>${rows}${sum}</tbody></table></div>${vLine(it,'Week progress',true,w.p,(df>=0?'+':'')+df+'% vs previous week')}`}
+function vLanding(){const go=m=>`S.view='auth';S.mode='${m}';render()`;
+ const row=(i,n,t,w)=>`<div class="hb"><div class="ic">${i}</div><div class="n"><b>${n}</b><span class="mut sm">${t}</span><div class="bar"><div style="width:${w}%"></div></div></div><div class="chk on" style="display:grid;place-items:center">✓</div></div>`;
+ return `<div class="lp"><header class="lh"><div class="logo" style="padding:0">KANSO</div><div class="row"><button class="btn g" onclick="${go('in')}">Sign in</button><button class="btn" onclick="${go('up')}">Get started</button></div></header>
+<section class="lhero"><div><p class="gold">Habits, kept simply</p><h1 class="lh1">Small rituals.<br>Unbroken streaks.</h1><p class="mut lp1">Set a goal of 7, 30 or 100 days, check in each day, and watch your weeks add up. Quiet, focused and yours.</p><div class="row wrap"><button class="btn" onclick="${go('up')}">Start your first streak</button><button class="btn g" onclick="${go('in')}">I have an account</button></div></div>
+<div class="lcard" aria-hidden="true"><div class="ring"><i>78%</i></div>${row('🧘','Morning meditation','Streak 28 of 30 days',93)}${row('💧','Hydration','Streak 14 of 21 days',66)}${row('✍️','Deep writing','25 min · streak 42 of 100',42)}</div></section>
+<section class="lf"><div class="card"><h3>Goals that mean something</h3><p class="mut">Pick a 7, 21, 30 or 100 day streak for each habit and track your progress toward it.</p></div><div class="card"><h3>Insight, week and month</h3><p class="mut">See adherence, best streaks and a 30-day grid, plus a weekly review with a reflection note.</p></div><div class="card"><h3>Room for real life</h3><p class="mut">Timer habits for focused sessions, and streak freezes that protect a missed day.</p></div></section>
+<p class="mut sm" style="text-align:center;margin-top:40px">Your habits stay on your device. Export a backup anytime.</p></div>`}
+function vAuth(){const M=S.mode,up=M==='up',fg=M==='forgot',np=M==='newpw';
+ return `<div class="auth"><button class="btn g" onclick="S.view='landing';render()" style="margin-bottom:18px">‹ Back</button><div class="logo">KANSO</div><p class="mut">Simple habits, kept every day.</p>
+<div class="card"><h2>${np?'Choose a new password':fg?'Reset password':up?'Create account':'Sign in'}</h2>
+${up?'<label for="nm">Name</label><input type="text" id="nm" autocomplete="name" value="'+esc((S.f||{}).nm||'')+'">':''}
+${np?'':'<label for="em">Email</label><input type="email" id="em" autocomplete="email" value="'+esc((S.f||{}).em||'')+'">'}
+${fg?'':`<label for="pw">${np?'New password':'Password'}</label><input type="password" id="pw" autocomplete="${up||np?'new-password':'current-password'}" onkeydown="if(event.key==='Enter')auth()">`}
+${fg?'<p class="mut sm">We will email you a link to set a new password.</p>':''}
+${S.err?`<div class="err" role="alert">${S.err}</div>`:''}${S.note?`<div class="gold sm" role="status" style="margin-top:10px">${S.note}</div>`:''}
+<div class="row sb wrap" style="margin-top:18px"><button class="btn" onclick="auth()">${np?'Update password':fg?'Send reset link':up?'Create account':'Sign in'}</button>${np?'':`<button class="btn g" onclick="S.mode='${up||fg?'in':'up'}';S.err='';S.note='';render()">${up||fg?'Back to sign in':'New here? Sign up'}</button>`}</div>
+${M==='in'?`<p style="margin:14px 0 0"><a href="#" style="color:var(--gold)" onclick="S.mode='forgot';S.err='';S.note='';render();return false">Forgot password?</a></p>`:''}</div>
+<p class="mut sm">${SB?'Your account and habits sync across your devices.':'Accounts and habits are saved on this device, in this browser.'}</p></div>`}
+function vToday(){const H=S.data.habits,k=key(S.date),due=H.filter(h=>h.days.includes(S.date.getDay())),dn_=due.filter(h=>dn(h,k)).length,p=due.length?Math.round(dn_/due.length*100):0,top=H.reduce((m,h)=>Math.max(m,streak(h)),0);
+ const strip=[...Array(7)].map((_,i)=>{const d=addD(new Date(),i-6);return `<button class="dy ${key(d)===k?'on':''}" style="font:inherit" onclick="S.date=new Date('${key(d)}T12:00');render()">${DN[d.getDay()]}<b>${d.getDate()}</b></button>`}).join('');
+ return `<div class="row sb wrap" style="margin-bottom:16px"><div><h1>${key(S.date)===key(new Date())?'Today':DN[S.date.getDay()]+', '+key(S.date)}</h1><div class="mut">Hello, ${esc(S.user.name)}</div></div><button class="btn" onclick="openHabit('habit')">+ New habit</button></div>
+<div class="card hero"><div><div class="mut sm">Longest active streak</div><div class="big">${top} <span class="gold" style="font-size:24px">days</span></div><div class="mut" style="margin-top:8px">${dn_} of ${due.length} habits done</div></div><div class="ring" style="--p:${p}"><i>${p}%</i></div></div>
+${H.length?vSheet(H)+'<h3 style="margin:8px 0 10px">Quick check-in</h3>':''}
+<div class="days">${strip}</div>
+${H.length?'':`<div class="card" style="text-align:center"><h3>Start your first habit</h3><p class="mut">Name it, set a streak goal such as 30 days, and check it off each day.</p><button class="btn" onclick="openHabit('habit')">Add a habit</button></div>`}
+${due.length||!H.length?'':'<p class="mut">Nothing is scheduled for this day.</p>'}
+${due.map(h=>{const s=streak(h),on=dn(h,k);return `<div class="hb"><div class="ic">${h.icon}</div><div class="n"><b>${esc(h.name)}</b><span class="mut sm">${h.type==='timer'?h.minutes+' min · ':''}Streak ${s} of ${h.target} days${h.time?' · '+h.time:''}</span><div class="bar"><div style="width:${Math.min(100,s/h.target*100)}%"></div></div></div>${!on&&key(S.date)<key(new Date())&&!fz(h,k)&&fzAvail()>0?`<button class="btn g" style="padding:8px 10px" onclick="useFreeze('${h.id}')">❄ Freeze</button>`:''}${fz(h,k)?'<span class="chip on">❄ Frozen</span>':''}${h.type==='timer'&&!on?`<button class="chk" aria-label="Start ${esc(h.name)} timer" onclick="startTimer('${h.id}')">▶</button>`:''}<button class="chk ${on?'on':''}" aria-label="Mark ${esc(h.name)} done" aria-pressed="${on}" onclick="toggle('${h.id}')">${on?'✓':''}</button></div>`}).join('')}`}
+
+function vAnalytics(){const H=S.data.habits;if(!H.length)return `<h1>Analytics</h1><p class="mut">Add a habit to see your progress.</p>`;
+ const seg=`<div class="seg">${[['week','Weekly'],['month','Monthly'],['year','Yearly'],['goals','Streak goals']].map(([v,l])=>`<button class="${S.range===v?'on':''}" onclick="S.range='${v}';render()">${l}</button>`).join('')}</div>`;
+ let body='';
+ if(S.range==='week'){const cols=[...Array(7)].map((_,i)=>{const d=addD(new Date(),i-6);let s=0,c=0;H.forEach(h=>{if(sched(h,d)){s++;if(dn(h,key(d)))c++}});const p=s?Math.round(c/s*100):0;return `<div class="c">${p}%<span style="height:${p*1.1}px"></span>${DN[d.getDay()]}</div>`}).join('');
+  body=`<div class="stats"><div class="card"><div class="mut sm">Adherence</div><div class="big">${rate(H,7)}%</div></div><div class="card"><div class="mut sm">Check-ins</div><div class="big">${H.reduce((a,h)=>a+[...Array(7)].filter((_,i)=>dn(h,key(addD(new Date(),-i)))).length,0)}</div></div><div class="card"><div class="mut sm">Habits</div><div class="big">${H.length}</div></div></div><div class="card"><h3>Completion per day</h3><div class="bars">${cols}</div></div>`;
+ }else if(S.range==='month'){const cells=[...Array(30)].map((_,i)=>{const d=addD(new Date(),i-29);let s=0,c=0;H.forEach(h=>{if(sched(h,d)){s++;if(dn(h,key(d)))c++}});return `<div class="cell ${s&&c===s?'f':c?'p':''}" title="${key(d)}: ${c}/${s}">${d.getDate()}</div>`}).join('');
+  body=`<div class="stats"><div class="card"><div class="mut sm">30-day adherence</div><div class="big">${rate(H,30)}%</div></div><div class="card"><div class="mut sm">Best streak</div><div class="big">${Math.max(...H.map(best))}</div></div><div class="card"><div class="mut sm">Active streaks</div><div class="big">${H.filter(h=>streak(h)>0).length}</div></div></div><div class="card"><h3>Last 30 days</h3><div class="grid" style="margin-top:12px">${cells}</div><p class="mut sm">Green: all done. Gold: some done. Grey: none.</p></div>
+  ${H.map(h=>`<div class="card row sb"><span>${h.icon} ${esc(h.name)}</span><b class="gold">${rate([h],30)}%</b></div>`).join('')}`;
+ }else if(S.range==='year'){body=vYear(H)}else{body=H.map(h=>{const s=streak(h),b=best(h),left=Math.max(0,h.target-s);return `<div class="card"><div class="row sb"><h3>${h.icon} ${esc(h.name)}</h3>${b>=h.target?'<span class="chip on">Goal reached</span>':`<span class="mut sm">${left} days to go</span>`}</div><div class="bar" style="height:10px"><div style="width:${Math.min(100,s/h.target*100)}%"></div></div><div class="row sb sm mut" style="margin-top:10px"><span>Current ${s} / ${h.target}</span><span>Best ${b}</span><span>30-day ${rate([h],30)}%</span></div></div>`}).join('')}
+ return `<h1 style="margin-bottom:16px">Analytics</h1>${seg}${body}`}
+
+function vHabits(){const H=S.data.habits;return `<div class="row sb" style="margin-bottom:16px"><h1>Habits</h1><button class="btn" onclick="openHabit('habit')">+ New habit</button></div>
+${H.length?'':'<p class="mut">No habits yet. Add one to begin.</p>'}
+${H.map(h=>`<div class="hb"><div class="ic">${h.icon}</div><div class="n"><b>${esc(h.name)}</b><span class="mut sm">${h.days.length===7?'Daily':h.days.map(i=>DN[i]).join(', ')} · goal ${h.target} days${h.time?' · '+h.time:''}</span></div><button class="btn g" onclick='openHabit("habit",S.data.habits.find(x=>x.id==="${h.id}"))'>Edit</button></div>`).join('')}`}
+
+function vSettings(){const np='Notification' in window?Notification.permission:'unsupported';
+ return `<h1 style="margin-bottom:16px">Settings</h1>
+<div class="card"><h3>Appearance</h3><div class="chips" style="margin-top:12px">${[['auto','System'],['dark','Dark'],['light','Light']].map(([v,l])=>`<button class="chip ${S.theme===v?'on':''}" onclick="setTheme('${v}')">${l}</button>`).join('')}</div></div>
+<div class="card"><h3>Device permissions</h3>
+<div class="tg"><div>Protect saved data<div class="mut sm">Asks the browser not to clear your habits when storage is low.</div></div><button class="btn g" onclick="askStorage()">Allow</button></div>
+<div class="tg"><div>Reminders<div class="mut sm">Status: ${np}. Reminders show while Kanso is open or installed.</div></div><button class="btn g" onclick="askNotify()">Allow</button></div></div>
+<div class="card"><h3>Backup</h3><p class="mut sm">Save your data to a file, or restore it on another device.</p><div class="row wrap"><button class="btn g" onclick="exportData()">Export file</button><label class="btn g" style="margin:0;cursor:pointer;color:var(--tx)">Import file<input type="file" accept="application/json" hidden onchange="importData(this.files[0])"></label></div></div>
+<div class="card"><div class="row sb"><div>${esc(S.user.name)}<div class="mut sm">${esc(S.user.email)}</div><div class="mut sm" id="sy">${SB?'Cloud sync: '+(S.sync||'synced'):'Saved on this device only'}</div></div><button class="btn d" onclick="signout()">Sign out</button></div></div>`}
+
+function vModal(){const e=S.edit,pre=[7,21,30,66,100],dm=e.days.length===7?'d':e.days.join()==='1,2,3,4,5'?'w':'c';
+ return `<div class="ov" onclick="if(event.target===this)closeModal()"><div class="md" role="dialog" aria-label="Habit"><h2>${S.data.habits.find(x=>x.id===e.id)?'Edit habit':'New habit'}</h2>
+<label for="hn">Name</label><input type="text" id="hn" value="${esc(e.name)}" placeholder="Cold plunge, read 20 pages…" maxlength="40">
+<label>Icon</label><div class="chips" style="max-height:132px;overflow:auto">${ICONS.map(i=>`<button class="chip e ${e.icon===i?'on':''}" onclick="S.edit.name=$('#hn').value;setE('icon','${i}')">${i}</button>`).join('')}</div>
+<input type="text" id="hi" maxlength="4" placeholder="Or type any emoji" aria-label="Custom emoji" style="margin-top:8px">
+<label for="ht">Streak goal (days)</label><input type="number" id="ht" min="1" max="3650" value="${e.target}"><div class="chips" style="margin-top:8px">${pre.map(n=>`<button class="chip ${e.target===n?'on':''}" onclick="S.edit.name=$('#hn').value;setE('target',${n})">${n}</button>`).join('')}</div>
+<label>Tracking</label><div class="chips"><button class="chip ${e.type!=='timer'?'on':''}" onclick="S.edit.name=$('#hn').value;setE('type','check')">Check off</button><button class="chip ${e.type==='timer'?'on':''}" onclick="S.edit.name=$('#hn').value;setE('type','timer')">Timer</button></div>${e.type==='timer'?`<label for="hm">Session length (minutes)</label><input type="number" id="hm" min="1" max="600" value="${e.minutes||25}">`:''}
+<label>Repeat</label><div class="chips"><button class="chip ${dm==='d'?'on':''}" onclick="S.edit.name=$('#hn').value;setE('days',[0,1,2,3,4,5,6])">Daily</button><button class="chip ${dm==='w'?'on':''}" onclick="S.edit.name=$('#hn').value;setE('days',[1,2,3,4,5])">Weekdays</button></div>
+<div class="chips" style="margin-top:8px">${DN.map((n,i)=>`<button class="chip ${e.days.includes(i)?'on':''}" onclick="S.edit.name=$('#hn').value;tgDay(${i})">${n}</button>`).join('')}</div>
+<label for="hr">Reminder time (optional)</label><input type="time" id="hr" value="${e.time}">
+${e.err?`<div class="err" role="alert">${e.err}</div>`:''}
+<div class="row sb" style="margin-top:22px"><div class="row"><button class="btn" onclick="saveHabit()">Save habit</button><button class="btn g" onclick="closeModal()">Cancel</button></div>${S.data.habits.find(x=>x.id===e.id)?'<button class="btn d" onclick="delHabit()">Delete</button>':''}</div></div></div>`}
+
+let tmI=null;
+function startTimer(id){const h=S.data.habits.find(x=>x.id===id);S.tm={id,left:(h.minutes||25)*60,run:false};S.modal='timer';render()}
+function tmFmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+function tmGo(){const t=S.tm;if(t.run){t.run=false;clearInterval(tmI)}else{t.run=true;t.end=Date.now()+t.left*1000;tmI=setInterval(()=>{t.left=Math.ceil((t.end-Date.now())/1000);const e=$('#tmv');if(e)e.textContent=tmFmt(Math.max(0,t.left));if(t.left<=0)tmDone()},500)}render()}
+function tmDone(){clearInterval(tmI);const id=S.tm.id,k=key(S.date),l=S.data.logs[id]=S.data.logs[id]||{};l[k]=1;bf(id,k);save();S.modal=null;S.tm=null;toast('Session complete. Well done.');try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}render()}
+function tmClose(){clearInterval(tmI);S.modal=null;S.tm=null;render()}
+function vTimer(){const t=S.tm,h=S.data.habits.find(x=>x.id===t.id);return `<div class="ov" onclick="if(event.target===this)tmClose()"><div class="md" style="text-align:center" role="dialog" aria-label="Timer"><div class="ic" style="margin:0 auto 8px">${h.icon}</div><h2>${esc(h.name)}</h2><div class="big" id="tmv" style="font-size:72px;margin:18px 0">${tmFmt(Math.max(0,t.left))}</div><div class="row" style="justify-content:center"><button class="btn" onclick="tmGo()">${t.run?'Pause':'Start'}</button><button class="btn g" onclick="tmDone()">Mark done</button><button class="btn g" onclick="tmClose()">Close</button></div></div></div>`}
+function sealNote(w){S.data.notes=S.data.notes||{};S.data.notes[w]={text:$('#rn').value,at:new Date().toLocaleString()};save();toast('Note saved.')}
+function vReview(){const H=S.data.habits,off=S.rw||0,n=new Date(),mon=addD(n,-((n.getDay()+6)%7)+off*7),days=[...Array(7)].map((_,i)=>addD(mon,i));
+ const wk=(ds,hs)=>{let s=0,c=0;hs.forEach(h=>ds.forEach(d=>{if(d<=n&&sched(h,d)){s++;if(dn(h,key(d)))c++}}));return[s,c]};
+ const [s,c]=wk(days,H),[s2,c2]=wk(days.map(d=>addD(d,-7)),H),p=s?Math.round(c/s*100):0,p2=s2?Math.round(c2/s2*100):0,w=key(mon),note=(S.data.notes||{})[w],df=p-p2;
+ const strip=days.map(d=>{const[a,b]=wk([d],H);return `<div class="dy">${DN[d.getDay()]}<b style="color:${a&&a===b?'var(--jade)':b?'var(--gold)':'var(--mut)'}">${a?(a===b?'✓':b?'◐':'·'):'–'}</b></div>`}).join('');
+ const tot=H.reduce((a,h)=>a+Object.keys(S.data.logs[h.id]||{}).length,0),bs=H.reduce((m,h)=>Math.max(m,best(h)),0);
+ const ms=[['🌅','First Week','7-day streak',bs,7],['🛡️','Iron Will','30-day streak',bs,30],['🏅','Centurion','100 check-ins',tot,100]];
+ return `<div class="row sb wrap" style="margin-bottom:16px"><div><h1>Weekly review</h1><div class="mut">${w} to ${key(days[6])}</div></div><div class="row"><button class="btn g" aria-label="Previous week" onclick="S.rw=(S.rw||0)-1;render()">‹</button><button class="btn g" aria-label="Next week" ${off>=0?'disabled style="opacity:.4"':''} onclick="S.rw=(S.rw||0)+1;render()">›</button></div></div>
+<div class="card hero"><div><div class="gold">${!s?'No habits scheduled':p>=90?'Exceptional week':p>=70?'Solid week':'Room to grow'}</div><div class="big">${p}% <span class="mut" style="font-size:22px">adherence</span></div><div class="mut" style="margin-top:8px">${df>=0?'+':''}${df}% vs previous week · ${c} of ${s} check-ins</div></div><div class="ring" style="--p:${p}"><i>${c}</i></div></div>
+<div class="days">${strip}</div>
+<h3 style="margin:20px 0 10px">Habit precision</h3>
+${H.length?'':'<p class="mut">Add a habit to see its weekly log.</p>'}
+${H.map(h=>{const[a,b]=wk(days,[h]),q=a?Math.round(b/a*100):0;return `<div class="hb"><div class="ic">${h.icon}</div><div class="n"><b>${esc(h.name)}</b><span class="mut sm">${b} of ${a} days · streak ${streak(h)}</span><div class="bar"><div style="width:${q}%"></div></div></div><b class="gold" style="font-size:20px">${q}%</b></div>`}).join('')}
+<div class="card row sb" style="margin-top:16px"><div><h3>❄ Streak freezes</h3><div class="mut sm">Protect a missed day from the Today tab. You earn one more every 30 check-ins.</div></div><b class="big" style="font-size:40px">${fzAvail()}</b></div>
+<h3 style="margin:20px 0 10px">Milestones</h3>
+<div class="ms">${ms.map(([i,t,d,v,g])=>`<div class="card ${v>=g?'':'lk'}"><div style="font-size:26px">${i}</div><b>${t}</b><div class="mut sm">${d}</div><div class="sm ${v>=g?'':'mut'}" style="color:${v>=g?'var(--jade)':''}">${v>=g?'Unlocked':v+' / '+g}</div></div>`).join('')}</div>
+<div class="card"><h3>Weekly reflection</h3><p class="mut" style="font-family:'Cormorant Garamond',serif;font-size:19px;font-style:italic">What friction did you remove this week?</p><textarea id="rn" aria-label="Weekly reflection">${esc(note?note.text:'')}</textarea><div class="row sb" style="margin-top:12px"><span class="mut sm">${note?'Saved '+note.at:'Not saved yet'}</span><button class="btn" onclick="sealNote('${w}');render()">Save note</button></div></div>`}
+function render(){const R=$('#root');
+ if(!S.user){R.innerHTML=S.view==='auth'?vAuth():vLanding();window.scrollTo(0,0);return}
+ const T=[['today','📅','Today'],['analytics','📈','Analytics'],['month','🗓️','Month'],['habits','♾️','Habits'],['review','🏅','Review'],['settings','⚙️','Settings']];
+ const v={today:vToday,analytics:vAnalytics,month:vMonth,habits:vHabits,review:vReview,settings:vSettings}[S.tab]();
+ R.innerHTML=`<div class="app"><nav><div class="logo">KANSO</div>${T.map(([id,i,l])=>`<button class="t ${S.tab===id?'on':''}" onclick="nav('${id}')" aria-current="${S.tab===id}"><span aria-hidden="true">${i}</span>${l}</button>`).join('')}<div class="sp"></div></nav><main>${v}</main></div>${S.modal==='timer'?vTimer():S.modal?vModal():''}`;
+ if(S.modal==='habit'&&!S.edit.err&&!document.activeElement.id)try{$('#hn').focus()}catch(x){}
+ const sh=$('#sh');if(S.tab==='today'&&sh&&sh.querySelector){const c=sh.querySelector('.td');if(c)sh.scrollLeft=Math.max(0,c.offsetLeft-sh.clientWidth/2)}}
+applyTheme();
+if(SB){if(REC){S.view='auth';S.mode='newpw'}render();SB.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){S.user=null;S.view='auth';S.mode='newpw';render()}});
+ if(!REC)SB.auth.getSession().then(({data})=>{if(data&&data.session)enter(data.session.user)}).catch(()=>{});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.user&&S.user.id&&!S.modal&&!S.tm)pull().then(()=>render()).catch(()=>{})})}
+else{const se=ld('kanso:session');if(se){const u=(ld('kanso:users')||[]).find(u=>u.email===se);if(u){S.user={email:u.email,name:u.name};S.data=ld('kanso:data:'+se)||{habits:[],logs:{}}}}
+render()}
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
